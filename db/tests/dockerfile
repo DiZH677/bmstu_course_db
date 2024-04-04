@@ -1,0 +1,38 @@
+FROM openjdk:8
+
+# Установка PostgreSQL и необходимых утилит
+RUN apt-get update && apt-get install -y postgresql
+RUN apt-get install -y wget
+
+# Загрузка PostgreSQL JDBC драйвера
+RUN mkdir -p /usr/share/java
+RUN wget -O /usr/share/java/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.2.24.jar
+
+# Установка Liquibase
+RUN mkdir /opt/liquibase
+ADD https://github.com/liquibase/liquibase/releases/download/v4.23.2/liquibase-4.23.2.tar.gz /opt/liquibase/
+RUN tar -xzf /opt/liquibase/liquibase-4.23.2.tar.gz -C /opt/liquibase
+RUN chmod +x /opt/liquibase/liquibase
+RUN ln -s /opt/liquibase/liquibase /usr/local/bin/
+
+# Установка Python и необходимых библиотек
+RUN apt-get update && apt-get install -y python3 python3-pip
+RUN pip3 install psycopg2-binary faker
+
+
+# Копирование changelog файлов в образ
+COPY db /db
+
+
+
+# Команда для запуска базы данных, Liquibase для обновления базы данных
+CMD service postgresql start && \
+	su postgres -c 'psql -c "CREATE USER docker WITH PASSWORD '\''bestpass'\'';"' && \
+	su postgres -c 'psql -c "CREATE DATABASE mydatabase;"'  && \
+	su postgres -c 'psql -c "GRANT ALL PRIVILEGES ON DATABASE mydatabase to docker;"'  && \
+ 	liquibase --driver=org.postgresql.Driver \
+ 		--classpath=/usr/share/java/postgresql.jar --url="jdbc:postgresql://localhost:5432/mydatabase" \
+ 		--username="docker" --password="bestpass" \
+ 		--changeLogFile=/db/changelog/changelog-master.xml \
+ 		update && \
+	python3 /db/tests/tests.py -dbname=mydatabase -user=docker -password="bestpass" -nval="10"
