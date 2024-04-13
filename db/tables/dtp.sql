@@ -21,7 +21,7 @@ ALTER TABLE dtp ADD COLUMN test varchar(15);
 --changeset dmitrijzigunov:del-field
 ALTER TABLE dtp DROP COLUMN test;
 
---changeset dmitrijzigunov:add-field
+--changeset dmitrijzigunov:add-field-v2
 ALTER TABLE dtp ADD COLUMN test2 varchar(3);
 
 
