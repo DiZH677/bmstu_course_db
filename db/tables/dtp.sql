@@ -24,5 +24,7 @@ ALTER TABLE dtp DROP COLUMN test;
 --changeset dmitrijzigunov:add-field-v2
 ALTER TABLE dtp ADD COLUMN test2 varchar(3);
 
+--changeset dmitrijzigunov:add-field-v3
+ALTER TABLE dtp ADD COLUMN test3 varchar(5);
 
 --rollback testTable
